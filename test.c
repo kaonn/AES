@@ -1,9 +1,17 @@
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "finite_field.h"
+#include "aes.h"
 
 int main()
 {
-  printf("%x\n", affine(0x53));
+  byte b[] = {0xdb, 0x13, 0x53, 0x45, 
+              0xf2, 0x0a, 0x22, 0x5c,
+              0x01, 0x01, 0x01, 0x01,
+              0x2d, 0x26, 0x31, 0x4c};
+
+  state s = malloc(sizeof(struct state_header));
+  encrypt(s, b);
   return 0;
 }
+

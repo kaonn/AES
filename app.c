@@ -4,9 +4,9 @@
 
 int main(int argc, char **argv)
 {
-  if (argc > 4)
+  if (argc != 4)
   {
-    printf("%s\n", "usage: ./debug <n1> <n2>");
+    printf("%s\n", "usage: ./app <n1> <n2>");
     return 0;
   }
 

@@ -28,17 +28,16 @@ byte xtime(byte b)
 
 byte mul(byte b1, byte b2)
 {
-  byte b3 = b2;
   byte result = 0;
-  bool bin_rep[8] = {false, false, false, false, false, false, false, false};
+  bool bin_rep[8] = {false};
 
   int i = 0;
-  while(b3 > 0)
+  while(b2 > 0)
   {
-    if ((b3 - (0x80 >> i)) >= 0)
+    if ((b2 - (0x80 >> i)) >= 0)
     {
       bin_rep[i] = true;
-      b3 = b3 - (0x80 >> i);
+      b2 = b2 - (0x80 >> i);
     }
     else
     {
@@ -48,14 +47,14 @@ byte mul(byte b1, byte b2)
     i++;
   }
 
-  b3 = b1;
+  b2 = b1;
   for (int i = 7; i >= 0; i--)
   {
     if (bin_rep[i])
     {
-      result = add(result, b3);
+      result = add(result, b2);
     }
-    b3 = xtime(b3);
+    b2 = xtime(b2);
   }
 
   return result;
@@ -67,16 +66,16 @@ byte inv(byte b1)
   {
     return 0;
   }
-  byte power[8];
+  byte power[8] = {0};
 
   power[0] = b1;
-  for (int i = 1; i < 8; i++)
+  for (size_t i = 1; i < 8; i++)
   {
     power[i] = mul(power[i - 1], power[i - 1]);
   }
 
   byte result = 1;
-  for (int i = 1; i < 8; i++)
+  for (size_t i = 1; i < 8; i++)
   {
     result = mul(result, power[i]);
   }
@@ -84,7 +83,7 @@ byte inv(byte b1)
   return result;
 }
 
-byte euclid_ext(byte b1, byte b2)
+/*byte euclid_ext(byte b1, byte b2)
 {
   byte q = 0;
   uint16_t rp = b2;
@@ -108,14 +107,15 @@ byte euclid_ext(byte b1, byte b2)
 
   return tp;
 }
-
+*/
 word poly_add(word w1, word w2)
 {
   word w3;
-  w3.b3 = add(w1.b3, w2.b3);
-  w3.b2 = add(w1.b2, w2.b2);
-  w3.b1 = add(w1.b1, w2.b1);
-  w3.b0 = add(w1.b0, w2.b0);
+
+  for (size_t i = 0; i < 4; i++)
+  {
+    w3.b[i] = add(w1.b[i], w2.b[i]);
+  }
 
   return w3;
 }
@@ -123,25 +123,30 @@ word poly_add(word w1, word w2)
 word poly_mul(word w1, word w2)
 {
   word w3;
-  w3.b0 = add(add(mul(w1.b0, w2.b0), mul(w1.b3, w2.b1)),add(mul(w1.b2, w2.b2),
-    mul(w1.b1, w2.b3)));
-  w3.b1 = add(add(mul(w1.b1, w2.b0), mul(w1.b0, w2.b1)),add(mul(w1.b3, w2.b2), 
-    mul(w1.b2, w2.b3)));
-  w3.b2 = add(add(mul(w1.b2, w2.b0), mul(w1.b1, w2.b1)),add(mul(w1.b0, w2.b2), 
-    mul(w1.b3, w2.b3)));
-  w3.b3 = add(add(mul(w1.b3, w2.b0), mul(w1.b2, w2.b1)),add(mul(w1.b1, w2.b2), 
-    mul(w1.b0, w2.b3)));
+
+  w3.b[0] = 0;
+  w3.b[1] = 0;
+  w3.b[2] = 0;
+  w3.b[3] = 0;
+
+  for (size_t i = 0; i < 4; i++)
+  {
+    for (size_t j = 0; j < 4; j++)
+    {
+      w3.b[j] = add(mul(w1.b[(j - i) % 4], w2.b[i]), w3.b[j]);
+    }
+  }
 
   return w3;
 }
 
 word poly_xtime(word w1)
 {
-  byte temp = w1.b3;
-  w1.b3 = w1.b2;
-  w1.b2 = w1.b1;
-  w1.b1 = w1.b0;
-  w1.b0 = temp;
+  byte temp = w1.b[3];
+  w1.b[3] = w1.b[2];
+  w1.b[2] = w1.b[1];
+  w1.b[1] = w1.b[0];
+  w1.b[0] = temp;
 
   return w1;
 }
@@ -149,15 +154,18 @@ word poly_xtime(word w1)
 byte affine(byte b)
 {
   byte result = 0;
+
+  byte b1 = inv(b);
+
   for (size_t i = 0; i < 8; i++)
   {
     for (size_t j = 0; j < 8; j++)
     {
-      result += mul(affine_matrix[i][j], (b >> j) & 1) << i;
+      result = add(result, mul(affine_matrix[i][j], (b1 >> j) & 1) << i);
     }
   }
 
-  return add(result, 0x63);
+  return add(result,0x63);
 }
 
 

@@ -1,3 +1,6 @@
+#ifndef FF_H
+#define FF_H
+
 #include <stdlib.h>
 #include "aes.h"
 
@@ -10,3 +13,5 @@ word poly_add(word w1, word w2);
 word poly_mul(word w1, word w2);
 word poly_xtime(word w1);
 byte affine(byte b);
+
+#endif
